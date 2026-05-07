@@ -30,7 +30,7 @@ def get_kesintiler():
     # 1: Planlı Kesinti, 16: Bursa
     payload = {
         "KesintiTur": 1,
-        "IlId": 16,
+        "IlId": 10,
         "IlceId": 0,
         "MahalleId": 0
     }
