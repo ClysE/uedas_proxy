@@ -13,34 +13,31 @@ app.add_middleware(
 
 @app.get("/")
 def home():
-    return {"mesaj": "Kurye Hazır!"}
+    return {"mesaj": "Kurye Kapıda Bekliyor!"}
 
 @app.get("/kesintiler")
 def get_kesintiler():
-    # Bu sefer doğrudan ana web sitesi üzerinden şansımızı deniyoruz
+    # UEDAŞ'ın doğrudan veri dağıtım servisi
     url = "https://edrimsapi.uedas.com.tr/api/DoimGeneral/KesintiGetirByKesintiTur"
     
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
-        "Accept": "application/json, text/plain, */*",
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
         "Content-Type": "application/json",
-        "Origin": "https://www.uedas.com.tr",
-        "Referer": "https://www.uedas.com.tr/tr/planli-kesintiler"
+        "Accept": "application/json",
+        "X-Requested-With": "XMLHttpRequest"
     }
     
-    # Bursa (16) için veri paketi
-    payload = {"cityId": 16}
+    # 1: Planlı Kesinti, 16: Bursa
+    payload = {
+        "KesintiTur": 1,
+        "IlId": 16,
+        "IlceId": 0,
+        "MahalleId": 0
+    }
     
     try:
-        # Timeout süresini 30 saniyeye çıkardık
-        response = requests.post(url, json=payload, headers=headers, timeout=30)
-        
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return {"hata": f"UEDAŞ cevap vermedi. Durum kodu: {response.status_code}"}
-            
-    except requests.exceptions.Timeout:
-        return {"hata": "UEDAŞ çok yavaş, bağlantı zaman aşımına uğradı."}
+        # 45 saniye sabırla bekliyoruz
+        response = requests.post(url, json=payload, headers=headers, timeout=45)
+        return response.json()
     except Exception as e:
-        return {"hata": f"Beklenmedik bir sorun oluştu: {str(e)}"}
+        return {"hata": "UEDAŞ şu an çok yoğun, lütfen 1 dakika sonra tekrar dene."}
