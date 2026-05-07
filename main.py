@@ -4,28 +4,40 @@ import requests
 
 app = FastAPI()
 
-# Figma'nın erişebilmesi için güvenlik kilidini (CORS) açan bölüm
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Her yerden gelen isteğe izin ver
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.get("/")
-def baslangic():
-    return {"mesaj": "Sistem Aktif! Kesintiler için /kesintiler adresine gidin."}
+def home():
+    return {"mesaj": "Sistem Aktif!"}
 
 @app.get("/kesintiler")
-def verileri_getir():
-    # Burası UEDAŞ'ın gerçek veri gönderdiği gizli adres (Network sekmesinden bulduğun)
-    url = "https://www.uedas.com.tr/api/GetOutages" 
+def get_kesintiler():
+    # UEDAŞ'ın gerçek veri ucu
+    url = "https://www.uedas.com.tr/api/GetOutages"
     
-    # Hangi il/ilçeyi istediğini buraya yazıyoruz
-    payload = {"cityId": 16} # Örnek: Bursa (16)
+    # Kuryeye taktığımız 'insan' maskesi (Headers)
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Content-Type": "application/json",
+        "Referer": "https://www.uedas.com.tr/tr/planli-kesintiler"
+    }
+    
+    # Bursa (16) için örnek payload
+    payload = {"cityId": 16}
     
     try:
-        r = requests.post(url, json=payload, timeout=10)
-        return r.json() # Veriyi temiz bir liste olarak Figma'ya fırlatır
-    except:
-        return {"hata": "UEDAŞ sitesine ulaşılamadı!"}
+        # İsteği maskeli bir şekilde gönderiyoruz
+        response = requests.post(url, json=payload, headers=headers, timeout=15)
+        
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"hata": f"UEDAŞ hata kodu verdi: {response.status_code}"}
+            
+    except Exception as e:
+        return {"hata": f"Bağlantı sırasında bir sorun oluştu: {str(e)}"}
