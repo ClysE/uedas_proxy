@@ -18,7 +18,7 @@ def home():
 @app.get("/kesintiler")
 def get_kesintiler():
     # UEDAŞ'ın gerçek veri ucu
-    url = "https://www.uedas.com.tr/api/GetOutages"
+    url = "https://edrimsapi.uedas.com.tr/api/DoimGeneral/KesintiGetirByKesintiTur"
     
     # Kuryeye taktığımız 'insan' maskesi (Headers)
     headers = {
